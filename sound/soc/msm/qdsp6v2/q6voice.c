@@ -18,6 +18,10 @@
 #include <linux/mutex.h>
 #include <linux/msm_audio_ion.h>
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#include <linux/input/doubletap2wake.h>
+#endif
+
 #include <soc/qcom/socinfo.h>
 #include <linux/qdsp6v2/apr_tal.h>
 
@@ -5812,6 +5816,9 @@ uint8_t voc_get_route_flag(uint32_t session_id, uint8_t path_dir)
 	return ret;
 }
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+bool gesture_incall = false;
+#endif
 int voc_end_voice_call(uint32_t session_id)
 {
 	struct voice_data *v = voice_get_session(session_id);
@@ -5822,6 +5829,11 @@ int voc_end_voice_call(uint32_t session_id)
 
 		return -EINVAL;
 	}
+
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0)
+		gesture_incall = false;
+#endif
 
 	mutex_lock(&v->lock);
 
@@ -5866,6 +5878,11 @@ int voc_standby_voice_call(uint32_t session_id)
 		return -EINVAL;
 	}
 	pr_debug("%s: voc state=%d", __func__, v->voc_state);
+
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0)
+		gesture_incall = true;
+#endif
 
 	if (v->voc_state == VOC_RUN) {
 		apr_mvm = common.apr_q6_mvm;
@@ -6057,6 +6074,11 @@ int voc_resume_voice_call(uint32_t session_id)
 	struct voice_data *v = voice_get_session(session_id);
 	int ret = 0;
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0)
+		gesture_incall = true;
+#endif
+
 	ret = voice_send_start_voice_cmd(v);
 	if (ret < 0) {
 		pr_err("Fail in sending START_VOICE\n");
@@ -6078,6 +6100,11 @@ int voc_start_voice_call(uint32_t session_id)
 
 		return -EINVAL;
 	}
+
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if (dt2w_switch > 0)
+		gesture_incall = true;
+#endif
 
 	mutex_lock(&v->lock);
 
