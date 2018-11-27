@@ -1,5 +1,4 @@
 /* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
- * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -360,7 +359,6 @@ static void msm_restart_prepare(const char *cmd)
 			enable_emergency_dload_mode();
 #endif
 		} else {
-			qpnp_pon_set_restart_reason(PON_RESTART_REASON_NORMAL);
 			__raw_writel(0x77665501, restart_reason);
 		}
 	}
@@ -426,8 +424,6 @@ static void do_msm_poweroff(void)
 	pr_notice("Powering off the SoC\n");
 
 	set_dload_mode(0);
-	qpnp_pon_set_restart_reason(PON_RESTART_REASON_UNKNOWN);
-	__raw_writel(0x0, restart_reason);
 	scm_disable_sdi();
 	qpnp_pon_system_pwr_off(PON_POWER_OFF_SHUTDOWN);
 
@@ -600,8 +596,6 @@ skip_sysfs_create:
 	if (mem)
 		tcsr_boot_misc_detect = mem->start;
 
-	qpnp_pon_set_restart_reason(PON_RESTART_REASON_UNKNOWN);
-	__raw_writel(0x77665506, restart_reason);
 	pm_power_off = do_msm_poweroff;
 	arm_pm_restart = do_msm_restart;
 
